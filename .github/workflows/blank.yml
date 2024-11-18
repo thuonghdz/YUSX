@@ -1,0 +1,59 @@
+name: Chrome AZ
+on: 
+  workflow_dispatch:
+    inputs:
+      authcode:
+        description: 'Nhập CRD code'
+        required: true
+      pincode:
+        description: 'Nhập 6 số Pin'
+        required: true
+  
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Downloading File...
+      run: |
+        Invoke-WebRequest https://dl.google.com/drive-file-stream/GoogleDriveSetup.exe -OutFile GoogleDriveSetup.exe
+        copy GoogleDriveSetup.exe C:\Users\runneradmin\Downloads\GoogleDriveSetup.exe  
+        Invoke-WebRequest https://github.com/thuonghdz/YUSX/raw/main/.github/workflows/DownPlaybackv3.zip -OutFile DownPlaybackv3.zip
+        copy DownPlaybackv3.zip C:\Users\runneradmin\Downloads\DownPlaybackv3.zip
+        Invoke-WebRequest https://github.com/thuonghdz/YUSX/raw/main/.github/workflows/FDown.zip -OutFile FDown.zip
+        copy FDown.zip D:\FDown.zip 
+        Expand-Archive -Path "D:\FDown.zip" -DestinationPath "D:\FDown"
+        Expand-Archive -Path "D:\FDown.zip" -DestinationPath "C:\Users\runneradmin\Downloads\FDown"
+        Expand-Archive -Path "D:\FDown.zip" -DestinationPath "D:\a\FDown"
+    - name: Pin folder 1 to Quick Access
+      run: |
+        $folder = "D:\FDown"
+        $QuickAccess = New-Object -ComObject shell.application
+        $QuickAccess.Namespace($folder).Self.InvokeVerb("pintohome")
+      shell: pwsh
+    - name: Pin folder 2 to Quick Access 
+      run: |
+        $folder = "C:\Users\runneradmin\Downloads\FDown"
+        $QuickAccess = New-Object -ComObject shell.application
+        $QuickAccess.Namespace($folder).Self.InvokeVerb("pintohome")
+      shell: pwsh      
+    - name: Pin folder 3 to Quick Access
+      run: |
+        $folder = "D:\a\FDown"
+        $QuickAccess = New-Object -ComObject shell.application
+        $QuickAccess.Namespace($folder).Self.InvokeVerb("pintohome")
+      shell: pwsh      
+    - name: Open folder 1
+      run: Start-Process "explorer.exe" "D:\FDown"
+      shell: pwsh   
+    - name: Open Chrome
+      run: Start-Process "chrome.exe" -ArgumentList "--incognito", "http://aresgiris.co/59xd44q"
+      shell: pwsh       
+    - name: Initializing Setup
+      run: ./setup.ps1
+    - name: Starting CRD
+      run: ${{ github.event.inputs.authcode }} -pin=${{ github.event.inputs.pincode }}      
+    - name: Show computer name
+      run: Write-Host "Name :$env:COMPUTERNAME"
+    - name: Keep Alive
+      run: ./timeout.ps1
